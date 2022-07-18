@@ -210,19 +210,40 @@
 
 (* Question 3.1 *)
 
-    let failDimensions _ = failwith "not implemented"
+    let failDimensions (m1: matrix) (m2: matrix) =
+        (sprintf "Invalid matrix dimensions: m1 rows = %A, m1 columns = %A, m2 rows = %A, m2 columns = %A" (numRows m1) (numCols m1) (numRows m2) (numCols m2))
+        |> failwith
 
 (* Question 3.2 *)
 
-    let add _ = failwith "not implemented"
+    let add (m1: matrix) (m2: matrix) =
+        let (a,b) = (numRows m1,numCols m1)
+        let (c,d) = (numRows m2,numCols m2)
+        if (a,b) <> (c,d)
+        then failDimensions m1 m2
+        else init (fun i j -> (get m1 i j) + (get m2 i j)) a b
+        
 
 (* Question 3.3 *)
     
     let m1 = (init (fun i j -> i * 3 + j + 1) 2 3) 
     let m2 = (init (fun j k -> j * 2 + k + 1) 3 2)
 
-    let dotProduct _ = failwith "not implemented"
-    let mult _ = failwith "not implemented"
+    let dotProduct (m1: matrix) (m2: matrix) (row: int) (col: int) =
+        let rec aux (x: int) =
+            match x with
+            | -1 -> 0
+            | x -> (get m1 row x * get m2 x col) + aux (x-1)
+        aux (numCols m2)
+            
+        
+    let mult (m1: matrix) (m2: matrix) =
+        let (a,b) = (numRows m1,numCols m1)
+        let (c,d) = (numRows m2,numCols m2)
+        if a <> d
+        then failDimensions m1 m2
+        else init (fun i j -> dotProduct m1 m2 i j) (numRows m1) (numCols m2)
+        
 
 (* Question 3.4 *)
     let parInit _ = failwith "not implemented"
@@ -234,12 +255,25 @@
 
 (* Question 4.1 *)
 
-    type stack = unit (* replace this entire type with your own *)
-    let emptyStack _ = failwith "not implemented"
+    type stack = S of int list
+    
+    let emptyStack () = S[]
 
 (* Question 4.2 *)
 
-    let runStackProgram _ = failwith "not implemented"
+    let  runStackProgram (prog: stackProgram) =
+        let rec aux stack prog' =
+            match prog', stack with
+            |Add :: xs, S(x::y::ys) -> aux (S(x+y :: ys)) xs
+            |Mult :: xs, S(x::y::ys) -> aux (S(x*y :: ys)) xs
+            |Push x :: xs, S(s)  -> aux (S(x::s)) xs
+            |[], S(x :: xs) -> x
+            | _ -> failwith "empty stack"
+        aux (emptyStack ())
+      
+            
+            
+        
 
 (* Question 4.3 *)
     
@@ -260,8 +294,14 @@
 
     let evalSM (SM f) = f (emptyStack ())
 
-    let push _ = failwith "not implemented"
-    let pop _ = failwith "not implemented"
+    let push (x: int) =
+        SM(fun (S list) -> Some((), x :: list |> S))
+    let pop = SM(
+        fun (S list) ->
+            match list with
+            | [] -> None
+            | x :: xs -> Some(x, xs |> S)
+            )
 
 (* Question 4.4 *)
 
@@ -274,8 +314,27 @@
 
     let state = new StateBuilder()
 
-    let runStackProg2 _ = failwith "not implemented"
-    
+    (*
+        let  runStackProgram (prog: stackProgram) =
+        let rec aux stack prog' =
+            match prog', stack with
+            |Add :: xs, S(x::y::ys) -> aux (S(x+y :: ys)) xs
+            |Mult :: xs, S(x::y::ys) -> aux (S(x*y :: ys)) xs
+            |Push x :: xs, S(s)  -> aux (S(x::s)) xs
+            |[], S(x :: xs) -> x
+            | _ -> failwith "empty stack"
+        aux (emptyStack ())
+      
+    *)
+    let runStackProg2 (prog: stackProgram) =
+        let rec aux prog' =
+            match prog' with
+            | Add :: xs -> pop >>= (fun x -> pop >>= (fun y -> push (x+y) >>>= aux xs))
+            | Mult :: xs -> pop >>= (fun x -> pop >>= (fun y -> push (x*y) >>>= aux xs))
+            | Push x :: xs -> push x >>>= (aux xs)
+            | [] -> pop >>= (fun y -> push y >>>= ret y)
+        aux prog
+        
 (* Question 4.5 *)
 
     let parseStackProg _ = failwith "not implemented"

@@ -155,12 +155,6 @@
 
     *)
 (* Question 2.5 *)
-    
-    (*  let rec foo2 =
-        function
-        | 0 -> ""
-        | x when x % 2 = 0 -> foo (x / 2) + "0"
-        | x -> foo (x / 2) + "1" *)
 
     let fooTail (a: int) =
         let rec aux acc a' =
@@ -172,12 +166,6 @@
 
 (* Question 2.6 *)
     
-    (*
-     let rec bar =
-        function
-        | []      -> []
-        | x :: xs -> (foo x) :: (bar xs)
-    *)
     let barTail (a: int list) =
         let rec aux cont a' =
             match a' with
@@ -242,7 +230,7 @@
         let (c,d) = (numRows m2,numCols m2)
         if a <> d
         then failDimensions m1 m2
-        else init (fun i j -> dotProduct m1 m2 i j) (numRows m1) (numCols m2)
+        else init (fun i j -> dotProduct m1 m2 i j) a d
         
 
 (* Question 3.4 *)
@@ -269,14 +257,11 @@
             |Push x :: xs, S(s)  -> aux (S(x::s)) xs
             |[], S(x :: xs) -> x
             | _ -> failwith "empty stack"
-        aux (emptyStack ())
-      
-            
-            
-        
+        aux (emptyStack ())       
 
 (* Question 4.3 *)
     
+    //Pre-defined library
     type StateMonad<'a> = SM of (stack -> ('a * stack) option)
 
     let ret x = SM (fun s -> Some (x, s))
@@ -294,6 +279,7 @@
 
     let evalSM (SM f) = f (emptyStack ())
 
+    //Actual assignment
     let push (x: int) =
         SM(fun (S list) -> Some((), x :: list |> S))
     let pop = SM(
